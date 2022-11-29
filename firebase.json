@@ -1,0 +1,9 @@
+{
+ "hosting": {
+   
+   "rewrites": [ {
+     "source": "**",
+     "function": "app"
+   } ]
+ }
+}
