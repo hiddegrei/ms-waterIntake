@@ -5,6 +5,7 @@ const cors = require("cors")({ origin: true });
 app.use(cors);
 const admin = require("firebase-admin");
 admin.initializeApp();
+// const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 
 exports.myFunction = functions.firestore.document("users/{userId}/calender/{yearId}/{monthId}/{dayId}").onUpdate((change, context) => {
   var today = new Date();
@@ -33,19 +34,17 @@ exports.myFunction = functions.firestore.document("users/{userId}/calender/{year
 });
 
 app.get("/", (req, res) => {
-  const date = new Date();
-  const hours = (date.getHours() % 12) + 1; // London is UTC + 1hr;
   res.send(`
     <!doctype html>
     <head>
       <title>Time</title>
       <link rel="stylesheet" href="/style.css">
-      <script src="/script.js"></script>
+     
     </head>
     <body>
-      <p>In London, the clock strikes:
-        <span id="bongs">${"BONG ".repeat(hours)}</span></p>
-      <button onClick="refresh(this)">Refresh</button>
+      <p>
+        <span id="bongs">api microservice waterintake</span></p>
+      
     </body>
   </html>`);
 });
@@ -137,6 +136,49 @@ app.get("/api/users/:userId/waterintake", (req, res) => {
     res.json({ data: dataR });
     return dataR;
   });
+});
+
+app.get("/api/users/:userId/waterintake/today", (req, res) => {
+  var today = new Date();
+  var day = today.getDate();
+  var month = today.getMonth();
+  var year = today.getFullYear();
+
+  admin
+    .firestore()
+    .collection("users")
+    .doc(req.params.userId)
+    .collection("calender")
+    .doc(`${year}`)
+    .collection(`${month}`)
+    .doc(`${day}`)
+    .get()
+    .then((doc) => {
+      res.json({ data: doc.data() });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+app.post("/api/users/:userId/waterintake/today/update/:amount", (req, res) => {
+  var today = new Date();
+  var day = today.getDate();
+  var month = today.getMonth();
+  var year = today.getFullYear();
+  admin
+    .firestore()
+    .collection("users")
+    .doc(req.params.userId)
+    .collection("calender")
+    .doc(`${year}`)
+    .collection(`${month}`)
+    .doc(`${day}`)
+    .update({
+      waterIntake: +req.params.amount + 100,
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 exports.app = functions.https.onRequest(app);
