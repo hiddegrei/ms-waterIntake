@@ -1,10 +1,17 @@
 const functions = require("firebase-functions");
 const express = require("express");
-const app = express();
+const bodyParser = require("body-parser");
+const { _onRequestWithOptions } = require("firebase-functions/v1/https");
 const cors = require("cors")({ origin: true });
+const app = express();
 app.use(cors);
 const admin = require("firebase-admin");
+
 admin.initializeApp();
+// app.use(bodyParser.urlencoded({ extended: false }));
+
+// app.use(bodyParser.json());
+
 // const { getFirestore, Timestamp, FieldValue } = require("firebase-admin/firestore");
 
 exports.myFunction = functions.firestore.document("users/{userId}/calender/{yearId}/{monthId}/{dayId}").onUpdate((change, context) => {
@@ -160,11 +167,16 @@ app.get("/api/users/:userId/waterintake/today", (req, res) => {
       console.log(err);
     });
 });
-app.post("/api/users/:userId/waterintake/today/update/:amount", (req, res) => {
+var jsonParser = bodyParser.json();
+
+// create application/x-www-form-urlencoded parser
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+app.post("/api/users/:userId/waterintake/today/update/", urlencodedParser, (req, res) => {
   var today = new Date();
   var day = today.getDate();
   var month = today.getMonth();
   var year = today.getFullYear();
+
   admin
     .firestore()
     .collection("users")
@@ -174,7 +186,11 @@ app.post("/api/users/:userId/waterintake/today/update/:amount", (req, res) => {
     .collection(`${month}`)
     .doc(`${day}`)
     .update({
-      waterIntake: +req.params.amount + 100,
+      waterIntake: +req.body.oldAmount + +req.body.amount,
+    })
+    .then((doc) => {
+      console.log(doc);
+      res.json({ data: +req.body.oldAmount + +req.body.amount });
     })
     .catch((err) => {
       console.log(err);
