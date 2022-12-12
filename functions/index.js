@@ -186,7 +186,7 @@ app.post("/api/users/:userId/waterintake/today/update/", urlencodedParser, (req,
     .collection(`${month}`)
     .doc(`${day}`)
     .update({
-      waterIntake: +req.body.oldAmount + +req.body.amount,
+      waterIntake: admin.firestore.FieldValue.increment(100),
     })
     .then((doc) => {
       console.log(doc);
@@ -195,6 +195,80 @@ app.post("/api/users/:userId/waterintake/today/update/", urlencodedParser, (req,
     .catch((err) => {
       console.log(err);
     });
+});
+
+app.get("/api/users/:userId/waterintake/lastweek", (req, res) => {
+  var today = new Date();
+  var day = today.getDate();
+  var month = today.getMonth();
+  var year = today.getFullYear();
+  var dayOfWeek=today.getDay();
+
+  let data=[{index:0,data:[]},
+  {index:1,data:[]},
+{index:2,data:[]},
+{index:3,data:[]},
+{index:4,data:[]},
+{index:5,data:[]},
+{index:6,data:[]}]
+for(let i=dayOfWeek;i++;i<6){
+   admin
+    .firestore()
+    .collection("users")
+    .doc(req.params.userId)
+    .collection("calender")
+    .doc(`${year}`)
+    .collection(`${month}`)
+    .doc(`${day+i-dayOfWeek}`)
+    .get()
+    .then((doc) => {
+      // res.json({ data: doc.data() });
+      data[i].data=doc.data()
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+}
+for (let i =1; i++; i <  dayOfWeek) {
+   admin
+    .firestore()
+    .collection("users")
+    .doc(req.params.userId)
+    .collection("calender")
+    .doc(`${year}`)
+    .collection(`${month}`)
+    .doc(`${day-dayOfweek+i-1}`)
+    .get()
+    .then((doc) => {
+      // res.json({ data: doc.data() });
+      data[i].data=doc.data()
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+}
+let sunIndex=dayOfWeek+dayOfweek%6
+ admin
+   .firestore()
+   .collection("users")
+   .doc(req.params.userId)
+   .collection("calender")
+   .doc(`${year}`)
+   .collection(`${month}`)
+   .doc(`${day + sunIndex}`)
+   .get()
+   .then((doc) => {
+     // res.json({ data: doc.data() });
+     data[day + sunIndex].data = doc.data();
+     res.json({ data: data });
+   })
+   .catch((err) => {
+     console.log(err);
+   });
+
+ 
 });
 
 exports.app = functions.https.onRequest(app);
