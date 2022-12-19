@@ -146,216 +146,69 @@ app.put("/api/users/:userId/waterintake/today", urlencodedParser, (req, res) => 
 });
 
 app.get("/api/users/:userId/waterintake/lastweek", (req, res) => {
-  var today = new Date();
-  var day = today.getDate();
-  var month = today.getMonth();
-  var year = today.getFullYear();
-  var dayOfWeek=today.getDay();
-  let days=["mon","tue","wed","thu","fri","sat","sun"]
-
-  let data=[{index:0,data:[]},
-  {index:1,data:[]},
-{index:2,data:[]},
-{index:3,data:[]},
-{index:4,data:[]},
-{index:5,data:[]},
-{index:6,data:[]}]
-function f1(){
-
-
- admin
-   .firestore()
-   .collection("users")
-   .doc(req.params.userId)
-   .collection("calender")
-   .doc(`${year}`)
-   .collection(`${month}`)
-   .doc(`${day}`)
-   .get()
-   .then((doc) => {
-     // res.json({ data: doc.data() });
-     
-       data[6].data = doc.data();
-
-     
-    if(day-1>=1){
-       f2()
-
-    }else{
-      month--
-     let newDate= new Date(year, month, 0).getDate();
-     day=newDate
-     f2()
-    }
-    
-     
-   })
-   .catch((err) => {
-     console.log(err);
-   });
-  }
-  function f2(){
-    
-   admin
-   .firestore()
-   .collection("users")
-   .doc(req.params.userId)
-   .collection("calender")
-   .doc(`${year}`)
-   .collection(`${month}`)
-   .doc(`${day- 1}`)
-   .get()
-   .then((doc) => {
-     // res.json({ data: doc.data() });
-     data[5].data = doc.data();
-     if (day - 2 >= 1) {
-       f3();
-     } else {
-       month--;
-       let newDate = new Date(year, month, 0).getDate();
-       day = newDate;
-       f3();
-     }
-     
-   })
-   .catch((err) => {
-     console.log(err);
-   });
-  }
-  function f3(){
-   admin
-   .firestore()
-   .collection("users")
-   .doc(req.params.userId)
-   .collection("calender")
-   .doc(`${year}`)
-   .collection(`${month}`)
-   .doc(`${day- 2}`)
-   .get()
-   .then((doc) => {
-     // res.json({ data: doc.data() });
-     data[4].data = doc.data();
-     if (day - 3 >= 1) {
-       f4();
-     } else {
-       month--;
-       let newDate = new Date(year, month, 0).getDate();
-       day = newDate;
-       f4();
-     }
-    
-   })
-   .catch((err) => {
-     console.log(err);
-   });
-  }
-  function f4(){
-   admin
-     .firestore()
-     .collection("users")
-     .doc(req.params.userId)
-     .collection("calender")
-     .doc(`${year}`)
-     .collection(`${month}`)
-     .doc(`${day - 3}`)
-     .get()
-     .then((doc) => {
-       // res.json({ data: doc.data() });
-       data[3].data = doc.data();
-       if(day-4>=1){
-       f5()
-
-    }else{
-      month--
-     let newDate= new Date(year, month, 0).getDate();
-     day=newDate
-     f5()
-    }
-       
-       
-     })
-     .catch((err) => {
-       console.log(err);
-     });
-    }
-    function f5(){
+ var today = new Date();
+ var day = today.getDate();
+ var month = today.getMonth();
+ var year = today.getFullYear();
+ var dayOfWeek = today.getDay();
+ let days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+ let data = [];
+ let go = true;
+ function resolveAfterEnd(yr, mon, d) {
+   return new Promise((resolve) => {
      admin
        .firestore()
        .collection("users")
        .doc(req.params.userId)
        .collection("calender")
-       .doc(`${year}`)
-       .collection(`${month}`)
-       .doc(`${day - 4}`)
+       .doc(`${yr}`)
+       .collection(`${mon}`)
+       .doc(`${d}`)
        .get()
        .then((doc) => {
          // res.json({ data: doc.data() });
-         data[2].data = doc.data();
-         if (day - 5 >= 1) {
-           f6();
-         } else {
-           month--;
-           let newDate = new Date(year, month, 0).getDate();
-           day = newDate;
-           f6();
+         if (doc.exists) {
+           data.push(doc.data());
          }
-        
-         
+
+         // console.log(doc.data());
+         //  res.json({ data: data });
+         resolve("succes");
        })
        .catch((err) => {
          console.log(err);
+         resolve("non");
        });
-      }
-      function f6(){
-       admin
-         .firestore()
-         .collection("users")
-         .doc(req.params.userId)
-         .collection("calender")
-         .doc(`${year}`)
-         .collection(`${month}`)
-         .doc(`${day - 5}`)
-         .get()
-         .then((doc) => {
-           // res.json({ data: doc.data() });
-           data[1].data = doc.data();
-           if (day - 6 >= 1) {
-             f7();
-           } else {
-             month--;
-             let newDate = new Date(year, month, 0).getDate();
-             day = newDate;
-             f7();
-           }
-           
-          
-         })
-         .catch((err) => {
-           console.log(err);
-         });
-        }
-        function f7(){
-         admin
-   .firestore()
-   .collection("users")
-   .doc(req.params.userId)
-   .collection("calender")
-   .doc(`${year}`)
-   .collection(`${month}`)
-   .doc(`${day- 6}`)
-   .get()
-   .then((doc) => {
-     // res.json({ data: doc.data() });
-     data[0].data = doc.data();
-    
-     res.json({ data:data });
-    
-   })
-   .catch((err) => {
-     console.log(err);
    });
-  }
-  f1()
+ }
+ async function f1(yr, mon, d) {
+   const x = await resolveAfterEnd(yr, mon, d);
+ }
+ async function loopie() {
+   for (let i = 0; i < 7; i++) {
+     const result = await f1(year, month, day);
+     if (day - 1 >= 1) {
+       day--;
+     } else {
+       month--;
+       let newDate = new Date(year, month, 0).getDate();
+       day = newDate;
+     }
+
+     if (i === 6) {
+       console.log("done");
+
+       return 0;
+     }
+   }
+ }
+ loopie().then((doc) => {
+  data.reverse()
+   res.json({ data: data });
+ });
+ console.log("last week");
+
+ 
 
 
  
@@ -422,6 +275,7 @@ data.push(doc.data());
  }
 }
  loopie().then((doc)=>{
+  data.reverse()
   res.json({ data: data });
 
  });
