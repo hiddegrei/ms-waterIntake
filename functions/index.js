@@ -10,6 +10,49 @@ const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fet
 
 admin.initializeApp();
 
+exports.scheduledFunctionCrontab = functions.pubsub
+  .schedule("59 11 * * *")
+  .timeZone("Amsterdam") // Users can choose timezone - default is America/Los_Angeles
+  .onRun((context) => {
+    admin
+      .firestore()
+      .collection("users")
+      .get().then((docs)=>{
+        docs.map((doc)=>{
+          if(doc.data().goal<=doc.data().waterIntake){
+            fetch(`https://us-central1-ms-users.cloudfunctions.net/app/api/users/${context.params.userId}/streak`, {
+              method: "PUT", // or 'PUT',
+
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+              },
+            })
+              .then((res) => {})
+              .catch((err) => {
+                console.log(err);
+              });
+
+          }else{
+            fetch(`https://us-central1-ms-users.cloudfunctions.net/app/api/users/${context.params.userId}/streak/reset`, {
+              method: "PUT", // or 'PUT',
+
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+              },
+            })
+              .then((res) => {})
+              .catch((err) => {
+                console.log(err);
+              });
+
+          }
+        })
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    return null;
+  });
 
 exports.myFunction = functions.firestore.document("users/{userId}/calender/{yearId}/{monthId}/{dayId}").onUpdate((change, context) => {
   var today = new Date();
