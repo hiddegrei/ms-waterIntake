@@ -177,7 +177,7 @@ app.put("/api/users/:userId/waterintake/today", urlencodedParser, (req, res) => 
     .collection(`${month}`)
     .doc(`${day}`)
     .update({
-      waterIntake: admin.firestore.FieldValue.increment(100),
+      waterIntake: admin.firestore.FieldValue.increment(+req.body.amount),
     })
     .then((doc) => {
       console.log(doc);
